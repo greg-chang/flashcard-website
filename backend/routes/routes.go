@@ -14,11 +14,6 @@ func SetupRouter() *gin.Engine {
 	// CORS middleware
 	r.Use(middleware.CORS())
 
-	// // Health check endpoint
-	// r.GET("/health", func(c *gin.Context) {
-	// 	c.JSON(200, gin.H{"status": "healthy"})
-	// })
-
 	// User routes
 	userRoutes := r.Group("/api/go/users")
 	{

@@ -44,21 +44,15 @@ func InitDB() error {
 	DB.SetMaxIdleConns(25)
 	DB.SetConnMaxLifetime(5 * time.Minute)
 
-	// Drop existing table and create new one with UUID
-	_, err = DB.Exec(`
-		DROP TABLE IF EXISTS users;
-		
-		CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-		
-		CREATE TABLE IF NOT EXISTS users (
-			id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-			name VARCHAR(255) NOT NULL,
-			email VARCHAR(255) UNIQUE NOT NULL,
-			password VARCHAR(255) NOT NULL
-		)
-	`)
+	// Read and execute setup.sql
+	setupSQL, err := os.ReadFile("setup.sql")
 	if err != nil {
-		return fmt.Errorf("failed to create users table: %v", err)
+		return fmt.Errorf("failed to read setup.sql: %v", err)
+	}
+
+	_, err = DB.Exec(string(setupSQL))
+	if err != nil {
+		return fmt.Errorf("failed to execute setup.sql: %v", err)
 	}
 
 	return nil

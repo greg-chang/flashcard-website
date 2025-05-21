@@ -76,7 +76,6 @@ export default function UserInterface() {
     return (
         <div className="container mx-auto p-4">
             <h1 className="text-2xl font-bold mb-4">User Management</h1>
-            
             {/* Create User Form */}
             <div className="bg-white rounded-lg shadow-md p-6 mb-8">
                 <h2 className="text-xl font-semibold mb-4">Create New User</h2>
