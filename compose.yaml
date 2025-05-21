@@ -8,10 +8,13 @@ services:
     ports:
       - 3000:3000
     depends_on:
-      goapp:
-        condition: service_healthy
+      - goapp
     environment:  
       - NEXT_PUBLIC_BACKEND_URL=http://goapp:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
       
   goapp:
     container_name: goapp
@@ -26,12 +29,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+    volumes:
+      - ./backend:/app
+      - /app/tmp
         
   db:
     container_name: db

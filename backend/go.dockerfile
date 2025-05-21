@@ -1,20 +1,23 @@
-FROM golang:1.22-alpine
+FROM golang:1.23-alpine
 
 WORKDIR /app
 
-# Install curl for health check
-RUN apk add --no-cache curl
+# Install curl and air for hot reloading
+RUN apk add --no-cache curl git && \
+    go install github.com/air-verse/air@latest
 
+# Copy air configuration
+COPY .air.toml .
+
+# Copy the rest of the application
 COPY . .
 
 # download dependencies
 RUN go mod download
 
-# build the application
-RUN go build -o main .
-
 EXPOSE 8000
 
 ENV PORT=8000
 
-CMD ["./main"]
+# Use air for hot reloading
+CMD ["air", "-c", ".air.toml"]

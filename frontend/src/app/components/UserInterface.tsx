@@ -3,7 +3,13 @@ import axios from 'axios';
 import CardComponent from './CardComponent';
 
 interface User {
-    id: string;
+    id: string;  // This will be a UUID string
+    name: string;
+    email: string;
+    password: string;
+}
+
+interface CreateUserData {
     name: string;
     email: string;
     password: string;
@@ -12,8 +18,7 @@ interface User {
 export default function UserInterface() {
     const [users, setUsers] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [newUser, setNewUser] = useState<User>({
-        id: '',
+    const [newUser, setNewUser] = useState<CreateUserData>({
         name: '',
         email: '',
         password: ''
@@ -30,11 +35,13 @@ export default function UserInterface() {
     const fetchUsers = async () => {
         try {
             setIsLoading(true);
+            setError('');
             const response = await axios.get<User[]>(apiUrl);
-            setUsers(response.data);
+            setUsers(response.data || []); // Ensure we always set an array
         } catch (err) {
             console.error('Error fetching users:', err);
             setError('Failed to fetch users');
+            setUsers([]); // Set empty array on error
         } finally {
             setIsLoading(false);
         }
@@ -47,14 +54,15 @@ export default function UserInterface() {
         
         try {
             const response = await axios.post<User>(apiUrl, newUser);
-            setUsers([...users, response.data]);
-            setNewUser({
-                id: '',
-                name: '',
-                email: '',
-                password: ''
-            });
-            setSuccess('User created successfully!');
+            if (response.data) {
+                setUsers(prevUsers => [...prevUsers, response.data]);
+                setNewUser({
+                    name: '',
+                    email: '',
+                    password: ''
+                });
+                setSuccess('User created successfully!');
+            }
         } catch (err) {
             if (axios.isAxiosError(err)) {
                 setError(err.response?.data?.error || 'Failed to create user');
@@ -125,7 +133,9 @@ export default function UserInterface() {
             {/* Display Users */}
             {isLoading ? (
                 <div className="text-center py-4">Loading users...</div>
-            ) : users.length === 0 ? (
+            ) : error ? (
+                <div className="text-center py-4 text-red-600">{error}</div>
+            ) : !users || users.length === 0 ? (
                 <div className="text-center py-4">No users found</div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
