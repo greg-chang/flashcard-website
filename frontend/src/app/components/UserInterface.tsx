@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import CardComponent from './CardComponent';
 
@@ -9,30 +9,36 @@ interface User {
     password: string;
 }
 
-interface UserInterfaceProps {
-    backendName: string; // go backend name
-}
-
-const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
-    const apiUrl = `http://localhost:8000/api/go/users`;
+export default function UserInterface() {
     const [users, setUsers] = useState<User[]>([]);
-    const [newUser, setNewUser] = useState<User>({id: '', name: '', email: '', password: ''});
-    const [updateUser, setUpdateUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [newUser, setNewUser] = useState<User>({
+        id: '',
+        name: '',
+        email: '',
+        password: ''
+    });
     const [error, setError] = useState<string>('');
     const [success, setSuccess] = useState<string>('');
 
+    const apiUrl = 'http://localhost:8000/api/go/users';
+
     useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                const response = await axios.get<User[]>(apiUrl);
-                setUsers(response.data);
-            } catch (error) {
-                console.error('Error fetching users:', error);
-                setError('Failed to fetch users');
-            }
-        };
         fetchUsers();
     }, [apiUrl]);
+
+    const fetchUsers = async () => {
+        try {
+            setIsLoading(true);
+            const response = await axios.get<User[]>(apiUrl);
+            setUsers(response.data);
+        } catch (err) {
+            console.error('Error fetching users:', err);
+            setError('Failed to fetch users');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -40,13 +46,22 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
         setSuccess('');
         
         try {
-            const response = await axios.post(apiUrl, newUser);
+            const response = await axios.post<User>(apiUrl, newUser);
             setUsers([...users, response.data]);
-            setNewUser({id: '', name: '', email: '', password: ''});
+            setNewUser({
+                id: '',
+                name: '',
+                email: '',
+                password: ''
+            });
             setSuccess('User created successfully!');
-        } catch (error: any) {
-            console.error('Error creating user:', error);
-            setError(error.response?.data?.error || 'Failed to create user');
+        } catch (err) {
+            if (axios.isAxiosError(err)) {
+                setError(err.response?.data?.error || 'Failed to create user');
+            } else {
+                setError('Failed to create user');
+            }
+            console.error('Error creating user:', err);
         }
     };
 
@@ -108,14 +123,18 @@ const UserInterface: React.FC<UserInterfaceProps> = ({ backendName }) => {
             </div>
             
             {/* Display Users */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {users.map((user) => (
-                    <CardComponent key={user.id} card={user} />
-                ))}
-            </div>
+            {isLoading ? (
+                <div className="text-center py-4">Loading users...</div>
+            ) : users.length === 0 ? (
+                <div className="text-center py-4">No users found</div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {users.map((user) => (
+                        <CardComponent key={user.id} card={user} />
+                    ))}
+                </div>
+            )}
         </div>
     );
-};
-
-export default UserInterface;
+}
     

@@ -1,11 +1,24 @@
 services:
+  nextapp:
+    container_name: nextapp
+    image: nextapp:1.0.0
+    build:
+      context: ./frontend
+      dockerfile: next.dockerfile
+    ports:
+      - 3000:3000
+    depends_on:
+      goapp:
+        condition: service_healthy
+    environment:  
+      - NEXT_PUBLIC_BACKEND_URL=http://goapp:8000
+      
   goapp:
     container_name: goapp
     image: goapp:1.0.0
     build:
       context: ./backend
       dockerfile: go.dockerfile
-    
     environment:
       - DATABASE_URL=postgres://postgres:postgres@db:5432/flashcardDB?sslmode=disable
     ports:
@@ -13,6 +26,12 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
         
   db:
     container_name: db

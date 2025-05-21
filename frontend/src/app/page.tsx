@@ -1,10 +1,10 @@
 'use client';
-import Image from "next/image";
-import UserInterface from "./components/UserInterface";
+import UserInterface from './components/UserInterface';
+
 export default function Home() {
   return (
-    <>
-      <UserInterface backendName="go" />
-    </>
+    <main className="min-h-screen bg-gray-100">
+      <UserInterface />
+    </main>
   );
 }
