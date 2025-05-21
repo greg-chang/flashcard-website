@@ -11,7 +11,7 @@ A full-stack flashcard application built with Go, PostgreSQL, and Next.js.
 
 1. Clone the repository:
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/greg-chang/flashcard-website.git
 cd flashcard-website
 ```
 
