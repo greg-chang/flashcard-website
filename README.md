@@ -45,9 +45,28 @@ docker exec -it db psql -U postgres -d flashcardDB
 
 ## Development
 
+### Hot Reload vs Full Restart
+
+The application uses Air for hot reloading in development. Here's when to use each approach:
+
+#### Use Hot Reload (Air)
+- Making changes to Go code files (`.go` files)
+- Modifying frontend code (Next.js files)
+- Updating API endpoints
+- Making changes to business logic
+- Debugging application behavior
+
+#### Use Full Restart (`docker compose down`)
+- Making changes to `compose.yaml`
+- Modifying `setup.sql`
+- Changing environment variables in Docker configuration
+- Resetting database state
+- Experiencing container issues
+- Needing a completely fresh start
+
 ### Restarting the Application
 
-If you make changes to the code:
+If you make changes that require a full restart:
 ```bash
 docker compose down
 docker compose up --build
