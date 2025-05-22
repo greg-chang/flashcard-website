@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"api/database"
-	"api/routes"
+	"api/src/database"
+	"api/src/routes"
 )
 
 func main() {

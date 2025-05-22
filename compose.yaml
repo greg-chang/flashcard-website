@@ -30,7 +30,10 @@ services:
       db:
         condition: service_healthy
     volumes:
-      - ./backend:/app
+      - ./backend/src:/app/src
+      - ./backend/go.mod:/app/go.mod
+      - ./backend/go.sum:/app/go.sum
+      - ./backend/setup.sql:/app/setup.sql
       - /app/tmp
         
   db:

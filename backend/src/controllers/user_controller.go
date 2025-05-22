@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"net/http"
 
-	"api/database"
-	"api/models"
+	"api/src/database"
+	"api/src/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
