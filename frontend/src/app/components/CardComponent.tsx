@@ -4,7 +4,6 @@ interface User {
     id: string;  // This will be a UUID string
     name: string;
     email: string;
-    password: string;
 }
 
 interface CardComponentProps {

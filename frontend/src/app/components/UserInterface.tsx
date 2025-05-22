@@ -1,133 +1,143 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import CardComponent from './CardComponent';
+import { useAuth } from '@clerk/nextjs';
+import { SignInButton, SignOutButton, useUser } from '@clerk/nextjs';
 
 interface User {
-    id: string;  // This will be a UUID string
+    id: string;
     name: string;
     email: string;
-    password: string;
 }
 
 interface CreateUserData {
+    clerk_id: string;
     name: string;
     email: string;
-    password: string;
 }
 
 export default function UserInterface() {
     const [users, setUsers] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [newUser, setNewUser] = useState<CreateUserData>({
-        name: '',
-        email: '',
-        password: ''
-    });
     const [error, setError] = useState<string>('');
     const [success, setSuccess] = useState<string>('');
+    const { getToken } = useAuth();
+    const { isSignedIn, user } = useUser();
 
     const apiUrl = 'http://localhost:8000/api/go/users';
 
     useEffect(() => {
-        fetchUsers();
-    }, [apiUrl]);
+        if (isSignedIn && user) {
+            // Check if user exists in our database
+            checkAndCreateUser();
+        }
+    }, [isSignedIn, user]);
 
-    const fetchUsers = async () => {
+    const checkAndCreateUser = async () => {
         try {
             setIsLoading(true);
             setError('');
-            const response = await axios.get<User[]>(apiUrl);
-            setUsers(response.data || []); // Ensure we always set an array
+            const token = await getToken();
+            
+            // First, try to get all users to check if this user exists
+            const response = await axios.get<User[]>(apiUrl, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            // Check if user already exists in our database
+            const users = response.data || [];
+            const userExists = users.some(u => u.email === user?.emailAddresses[0]?.emailAddress);
+            
+            if (!userExists && user?.emailAddresses?.[0]?.emailAddress) {
+                // Create new user if they don't exist
+                const newUser: CreateUserData = {
+                    clerk_id: user?.id || '',
+                    name: user?.firstName || user?.username || '',
+                    email: user.emailAddresses[0].emailAddress
+                };
+
+                await axios.post<User>(apiUrl, newUser, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                setSuccess('User created successfully!');
+            }
+
+            // Fetch updated user list
+            await fetchUsers();
         } catch (err) {
-            console.error('Error fetching users:', err);
-            setError('Failed to fetch users');
-            setUsers([]); // Set empty array on error
+            console.error('Error checking/creating user:', err);
+            if (axios.isAxiosError(err)) {
+                setError(err.response?.data?.error || 'Failed to check/create user');
+            } else {
+                setError('Failed to check/create user');
+            }
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleCreateUser = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
-        setSuccess('');
-        
+    const fetchUsers = async () => {
         try {
-            const response = await axios.post<User>(apiUrl, newUser);
-            if (response.data) {
-                setUsers(prevUsers => [...prevUsers, response.data]);
-                setNewUser({
-                    name: '',
-                    email: '',
-                    password: ''
-                });
-                setSuccess('User created successfully!');
-            }
+            setIsLoading(true);
+            setError('');
+            const token = await getToken();
+            const response = await axios.get<User[]>(apiUrl, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            setUsers(response.data || []);
         } catch (err) {
-            if (axios.isAxiosError(err)) {
-                setError(err.response?.data?.error || 'Failed to create user');
-            } else {
-                setError('Failed to create user');
-            }
-            console.error('Error creating user:', err);
+            console.error('Error fetching users:', err);
+            setError('Failed to fetch users');
+            setUsers([]);
+        } finally {
+            setIsLoading(false);
         }
     };
 
+    if (!isSignedIn) {
+        return (
+            <div className="container mx-auto p-4 text-center">
+                <h1 className="text-2xl font-bold mb-4">Welcome to Flashcard App</h1>
+                <p className="mb-4">Please sign in to continue</p>
+                <SignInButton mode="modal">
+                    <button className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        Sign In
+                    </button>
+                </SignInButton>
+            </div>
+        );
+    }
+
     return (
         <div className="container mx-auto p-4">
-            <h1 className="text-2xl font-bold mb-4">User Management</h1>
-            {/* Create User Form */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                <h2 className="text-xl font-semibold mb-4">Create New User</h2>
-                {error && (
-                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                        {error}
-                    </div>
-                )}
-                {success && (
-                    <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                        {success}
-                    </div>
-                )}
-                <form onSubmit={handleCreateUser} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Name</label>
-                        <input
-                            type="text"
-                            value={newUser.name}
-                            onChange={(e) => setNewUser({...newUser, name: e.target.value})}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Email</label>
-                        <input
-                            type="email"
-                            value={newUser.email}
-                            onChange={(e) => setNewUser({...newUser, email: e.target.value})}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Password</label>
-                        <input
-                            type="password"
-                            value={newUser.password}
-                            onChange={(e) => setNewUser({...newUser, password: e.target.value})}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            required
-                        />
-                    </div>
-                    <button
-                        type="submit"
-                        className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                    >
-                        Create User
-                    </button>
-                </form>
+            <div className="flex justify-between items-center mb-8">
+                <h1 className="text-2xl font-bold">User Management</h1>
+                <div className="flex items-center gap-4">
+                    <span className="text-gray-600">Welcome, {user?.firstName || user?.username}</span>
+                    <SignOutButton>
+                        <button className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                            Sign Out
+                        </button>
+                    </SignOutButton>
+                </div>
             </div>
+
+            {error && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                    {error}
+                </div>
+            )}
+            {success && (
+                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+                    {success}
+                </div>
+            )}
             
             {/* Display Users */}
             {isLoading ? (
