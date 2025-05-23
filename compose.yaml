@@ -9,12 +9,16 @@ services:
       - 3000:3000
     depends_on:
       - goapp
-    environment:  
+    environment:
       - NEXT_PUBLIC_BACKEND_URL=http://goapp:8000
     volumes:
       - ./frontend:/app
       - /app/node_modules
       - /app/.next
+    networks:
+      - app-network
+    env_file:
+      - ./frontend/.env.local
       
   goapp:
     container_name: goapp
@@ -35,7 +39,11 @@ services:
       - ./backend/go.sum:/app/go.sum
       - ./backend/setup.sql:/app/setup.sql
       - /app/tmp
-        
+    networks:
+      - app-network
+    env_file:
+      - ./backend/.env
+
   db:
     container_name: db
     image: postgres:16
@@ -53,6 +61,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - app-network
 
 volumes:
   pgdata: {}
+
+networks:
+  app-network:
+    driver: bridge

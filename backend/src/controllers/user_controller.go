@@ -13,7 +13,7 @@ import (
 
 // GetUsers returns all users
 func GetUsers(c *gin.Context) {
-	rows, err := database.DB.Query("SELECT id, name, email, password FROM users")
+	rows, err := database.DB.Query("SELECT id, clerk_id, name, email FROM users")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -23,7 +23,7 @@ func GetUsers(c *gin.Context) {
 	var users []models.User
 	for rows.Next() {
 		var u models.User
-		if err := rows.Scan(&u.ID, &u.Name, &u.Email, &u.Password); err != nil {
+		if err := rows.Scan(&u.ID, &u.ClerkID, &u.Name, &u.Email); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -47,8 +47,10 @@ func GetUser(c *gin.Context) {
 	}
 
 	var user models.User
-	err = database.DB.QueryRow("SELECT id, name, email, password FROM users WHERE id = $1", id).
-		Scan(&user.ID, &user.Name, &user.Email, &user.Password)
+	err = database.DB.QueryRow(
+		"SELECT id, clerk_id, name, email FROM users WHERE id = $1",
+		id,
+	).Scan(&user.ID, &user.ClerkID, &user.Name, &user.Email)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
@@ -75,8 +77,8 @@ func CreateUser(c *gin.Context) {
 	}
 
 	err := database.DB.QueryRow(
-		"INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id",
-		user.Name, user.Email, user.Password,
+		"INSERT INTO users (clerk_id, name, email) VALUES ($1, $2, $3) RETURNING id",
+		user.ClerkID, user.Name, user.Email,
 	).Scan(&user.ID)
 
 	if err != nil {
@@ -107,8 +109,8 @@ func UpdateUser(c *gin.Context) {
 	}
 
 	result, err := database.DB.Exec(
-		"UPDATE users SET name = $1, email = $2, password = $3 WHERE id = $4",
-		user.Name, user.Email, user.Password, id,
+		"UPDATE users SET name = $1, email = $2 WHERE id = $3",
+		user.Name, user.Email, id,
 	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -126,7 +128,16 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	user.ID = id
+	// Get the updated user
+	err = database.DB.QueryRow(
+		"SELECT id, clerk_id, name, email FROM users WHERE id = $1",
+		id,
+	).Scan(&user.ID, &user.ClerkID, &user.Name, &user.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, user)
 }
 
