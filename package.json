@@ -1,9 +1,31 @@
 {
 	"devDependencies": {
-		"husky": "^9.1.7"
+		"husky": "^9.1.7",
+		"lint-staged": "^16.0.0",
+		"prettier": "^3.5.3"
 	},
 	"scripts": {
 		"prepare": "husky",
-		"test": "echo \"No tests specified\" && exit 0"
+		"test": "echo \"No tests specified\" && exit 0",
+		"format": "prettier . --check",
+		"format:fix": "prettier --write .",
+		"lint": "pnpm run lint:frontend",
+		"lint:frontend": "cd frontend && pnpm lint",
+		"lint:fix": "pnpm run lint:frontend:fix",
+		"lint:frontend:fix": "cd frontend && pnpm lint --fix",
+		"check": "pnpm run format && pnpm run lint",
+		"fix": "pnpm run format:fix && pnpm run lint:fix"
+	},
+	"lint-staged": {
+		"frontend/**/*.{js,jsx,ts,tsx}": [
+			"prettier --write --ignore-unknown",
+			"cd frontend && pnpm lint --fix"
+		],
+		"frontend/**/*.{json,md,html}": [
+			"prettier --write --ignore-unknown"
+		],
+		"backend/**/*.go": [
+			"go fmt"
+		]
 	}
 }
