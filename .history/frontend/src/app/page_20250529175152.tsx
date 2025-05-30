@@ -11,7 +11,7 @@ export default function Home() {
   }
   return (
     <main className="min-h-screen bg-gray-100">
-      {isSignedIn ? <Dashboard /> : <Homepage />}
+      {isSignedIn ? <UserInterface /> : <Homepage />}
     </main>
   );
 }

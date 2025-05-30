@@ -19,6 +19,7 @@ export const metadata: Metadata = {
   title: "Flashcard Website",
   description: "ECS 162 - Web Programming Final Project",
 };
+const theme = extendTheme({});
 
 export default function RootLayout({
   children,
