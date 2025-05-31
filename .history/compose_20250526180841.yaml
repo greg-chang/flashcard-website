@@ -1,0 +1,72 @@
+services:
+  nextapp:
+    container_name: nextapp
+    image: nextapp:1.0.0
+    build:
+      context: ./frontend
+      dockerfile: next.dockerfile
+    ports:
+      - 3000:3000
+    depends_on:
+      - goapp
+    environment:
+      - NEXT_PUBLIC_BACKEND_URL=http://goapp:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - app-network
+    env_file:
+      - ./frontend/.env.local
+      
+  goapp:
+    container_name: goapp
+    image: goapp:1.0.0
+    build:
+      context: ./backend
+      dockerfile: go.dockerfile
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/flashcardDB?sslmode=disable
+    ports:
+      - 8000:8000
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/go.mod:/app/go.mod
+      - ./backend/go.sum:/app/go.sum
+      - ./backend/setup.sql:/app/setup.sql
+      - /app/tmp
+    networks:
+      - app-network
+    env_file:
+      - ./backend/.env
+
+  db:
+    container_name: db
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: flashcardDB
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backend/setup.sql:/docker-entrypoint-initdb.d/setup.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+volumes:
+  pgdata: {}
+
+networks:
+  app-network:
+    driver: bridge
