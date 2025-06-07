@@ -6,7 +6,7 @@ WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Copy package files
-COPY package*.json pnpm-lock.yaml* ./
+COPY package*.json pnpm-lock.yaml ./
 
 # Install dependencies
 RUN pnpm install
@@ -16,7 +16,7 @@ COPY . .
 
 # # Uncomment to build production
 # # Build the application
-# RUN npm run build
+# RUN pnpm run build
 
 
 # Expose the port
@@ -24,7 +24,7 @@ EXPOSE 3000
 
 # # Uncomment for production
 # # Start the application
-# CMD ["npm", "start"] 
+# CMD ["pnpm", "start"] 
 
 # Start the application in development mode
 CMD ["pnpm", "run", "dev"] 
