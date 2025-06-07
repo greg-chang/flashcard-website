@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 interface User {
-    id: string;  // This will be a UUID string
+    id: string; 
     name: string;
     email: string;
 }
