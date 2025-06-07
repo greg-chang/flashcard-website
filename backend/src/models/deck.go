@@ -14,7 +14,6 @@ type Deck struct {
 	Description string    `json:"description"`
 }
 
-// Validate performs basic validation on the deck struct
 func (d *Deck) Validate() error {
 	if d.OwnerID == uuid.Nil {
 		return fmt.Errorf("owner_id is required")

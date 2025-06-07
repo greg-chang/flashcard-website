@@ -13,7 +13,6 @@ type User struct {
 	Email   string    `json:"email" binding:"required"`
 }
 
-// Validate performs basic validation on the user struct
 func (u *User) Validate() error {
 	if u.ClerkID == "" {
 		return fmt.Errorf("clerk_id is required")
