@@ -1,11 +1,17 @@
 "use client"
 import React, { useState, useRef, useEffect } from 'react';
 import { useUser, SignOutButton } from '@clerk/nextjs';
+import Link from 'next/link';
 
 export default function Navbar() {
     const { user } = useUser();
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+
+    // Log user object for debugging
+    useEffect(() => {
+        console.log("Navbar user:", user);
+    }, [user]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -23,11 +29,18 @@ export default function Navbar() {
     }, [open]);
 
     return (
-        <nav className="w-full bg-sand shadow flex items-center justify-between px-6 py-3">
-            {/* Logo */}
-            <div className="flex items-center">
-                <img src="/logo.png" alt="Logo" className="h-8 w-8 mr-2" />
-                <span className="font-bold text-xl text-indigo-700">Flashcard App</span>
+        <nav className="absolute top-0 left-0 w-full bg-sand shadow-lg flex items-center justify-between px-6 py-3 z-50">
+            {/* Left side: Logo and Create Deck link */}
+            <div className="flex items-center gap-6">
+                <Link className="flex items-center" href={'/'}>
+                    <span className="font-bold text-xl text-expresso">StudyLounge</span>
+                </Link>
+                <Link
+                    href="/create-deck"
+                    className="text-walnut font-medium hover:text-mocha transition"
+                >
+                    Create Deck
+                </Link>
             </div>
             {/* User Profile */}
             {user && (
@@ -43,7 +56,7 @@ export default function Navbar() {
                         />
                         <span className="font-medium text-gray-800">{user.firstName || user.username}</span>
                         <svg
-                            className={`w-4 h-4 ml-1 transition-transform ${open ? 'rotate-180' : ''}`}
+                            className={`w-4 h-4 color-coffee ml-1 transition-transform ${open ? 'rotate-180' : ''}`}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -58,14 +71,8 @@ export default function Navbar() {
                                 <div className="font-semibold">{user.firstName || user.username}</div>
                                 <div className="text-sm text-gray-500">{user.emailAddresses?.[0]?.emailAddress}</div>
                             </div>
-                            <a
-                                href={`/profile`}
-                                className="block px-4 py-2 text-indigo-700 hover:bg-gray-100"
-                            >
-                                View Profile
-                            </a>
                             <SignOutButton>
-                                <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600">
+                                <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-expresso">
                                     Sign Out
                                 </button>
                             </SignOutButton>
