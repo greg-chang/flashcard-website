@@ -25,7 +25,7 @@
 			"prettier --write --ignore-unknown"
 		],
 		"backend/**/*.go": [
-			"go fmt"
+			"gofmt -w"
 		]
 	}
 }
