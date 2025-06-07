@@ -116,7 +116,13 @@ func CreateDeck(c *gin.Context) {
 
 // UpdateDeck updates an existing deck
 func UpdateDeck(c *gin.Context) {
-	id, err := uuid.Parse(c.Param("id"))
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+		return
+	}
+
+	deckID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid UUID format"})
 		return
@@ -134,8 +140,8 @@ func UpdateDeck(c *gin.Context) {
 	}
 
 	result, err := database.DB.Exec(
-		"UPDATE decks SET labels = $1, title = $2, description = $3 WHERE id = $4",
-		deck.Labels, deck.Title, deck.Description, id,
+		"UPDATE decks SET labels = $1, title = $2, description = $3 WHERE id = $4 AND owner_id = $5",
+		deck.Labels, deck.Title, deck.Description, deckID, userID,
 	)
 
 	if err != nil {
@@ -157,7 +163,7 @@ func UpdateDeck(c *gin.Context) {
 	// Get the update deck
 	err = database.DB.QueryRow(
 		"SELECT id, owner_id, labels, title, description FROM decks WHERE id = $1",
-		id,
+		deckID,
 	).Scan(&deck.ID, &deck.OwnerID, &deck.Labels, &deck.Title, &deck.Description)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -169,13 +175,19 @@ func UpdateDeck(c *gin.Context) {
 
 // DeleteUser deletes a deck
 func DeleteDeck(c *gin.Context) {
-	id, err := uuid.Parse(c.Param("id"))
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+		return
+	}
+
+	deckID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid UUID format"})
 		return
 	}
 
-	result, err := database.DB.Exec("DELETE FROM decks WHERE id = $1", id)
+	result, err := database.DB.Exec("DELETE FROM decks WHERE id = $1 AND owner_id = $2", deckID, userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
