@@ -7,11 +7,13 @@ export default function CreateDeckPage() {
   const [description, setDescription] = useState("");
   const [cards, setCards] = useState([{ front: "", back: "" }]);
 
-  const handleCardChange = (idx: number, side: "front" | "back", value: string) => {
+  const handleCardChange = (
+    idx: number,
+    side: "front" | "back",
+    value: string,
+  ) => {
     setCards((prev) =>
-      prev.map((card, i) =>
-        i === idx ? { ...card, [side]: value } : card
-      )
+      prev.map((card, i) => (i === idx ? { ...card, [side]: value } : card)),
     );
   };
 
@@ -21,21 +23,41 @@ export default function CreateDeckPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Replace with your API endpoint
-    const res = await fetch("/api/go/decks", {
+
+    // 1. Create the deck
+    const deckRes = await fetch("/api/go/decks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, description, cards }),
+      body: JSON.stringify({ title, description, labels: [] }),
     });
-    if (res.ok) {
-      // Optionally redirect or show success
-      setTitle("");
-      setDescription("");
-      setCards([{ front: "", back: "" }]);
-      alert("Deck created!");
-    } else {
-      alert("Failed to create deck.");
+
+    if (!deckRes.ok) {
+      const errorText = await deckRes.text();
+      alert(`Failed to create deck.`);
+      console.error(`${errorText}`);
+      return;
     }
+
+    const deck = await deckRes.json();
+
+    // 2. Create each flashcard
+    for (const card of cards) {
+      await fetch(`/api/go/decks/${deck.id}/flashcards`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          front: card.front,
+          back: card.back,
+          starred: false,
+        }),
+      });
+    }
+
+    // 3. Reset form and notify user
+    setTitle("Untitled Deck");
+    setDescription("");
+    setCards([{ front: "", back: "" }]);
+    alert("Deck created!");
   };
 
   return (
@@ -61,7 +83,10 @@ export default function CreateDeckPage() {
         <h2 className="text-xl font-semibold mb-2 text-expresso">Cards</h2>
         <div className="space-y-4 mb-6">
           {cards.map((card, idx) => (
-            <div key={idx} className="flex bg-white items-center border border-walnut rounded-xl">
+            <div
+              key={idx}
+              className="flex bg-white items-center border border-walnut rounded-xl"
+            >
               <textarea
                 className="text-walnut flex-1 rounded px-3 py-2 focus:outline-none focus:ring-0 focus:ring-coffee resize-none"
                 value={card.front}
