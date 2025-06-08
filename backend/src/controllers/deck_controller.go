@@ -10,12 +10,33 @@ import (
 	"github.com/google/uuid"
 )
 
+// getUserIdFromClerkID is a helper function to get the user's UUID from their Clerk ID
+func getUserIdFromClerkID(c *gin.Context) (uuid.UUID, bool) {
+	clerkID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+		return uuid.Nil, false
+	}
+
+	var userID uuid.UUID
+	err := database.DB.QueryRow("SELECT id FROM users WHERE clerk_id = $1", clerkID).Scan(&userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusForbidden, gin.H{"error": "User not found in database"})
+			return uuid.Nil, false
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user from database"})
+		return uuid.Nil, false
+	}
+
+	return userID, true
+}
+
 // GetDecks returns all decks for a single user by ID
 // Takes in the users ID as a parameter
 func GetDecks(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+	userID, ok := getUserIdFromClerkID(c)
+	if !ok {
 		return
 	}
 
@@ -49,20 +70,25 @@ func GetDecks(c *gin.Context) {
 
 // GetDeck returns a single deck for a single user by ID
 func GetDeck(c *gin.Context) {
-	id, err := uuid.Parse(c.Param("id"))
+	deckID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid UUID format"})
 		return
 	}
 
+	userID, ok := getUserIdFromClerkID(c)
+	if !ok {
+		return
+	}
+
 	var deck models.Deck
 	err = database.DB.QueryRow(
-		"SELECT id, owner_id, labels, title, description FROM decks WHERE id = $1",
-		id,
+		"SELECT id, owner_id, labels, title, description FROM decks WHERE id = $1 AND owner_id = $2",
+		deckID, userID,
 	).Scan(&deck.ID, &deck.OwnerID, &deck.Labels, &deck.Title, &deck.Description)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Deck not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Deck not found or access denied"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -76,9 +102,8 @@ func GetDeck(c *gin.Context) {
 // OwnerID is taken from the URL path parameter.
 // Title, Description, and Labels are taken from URL query parameters.
 func CreateDeck(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+	userID, ok := getUserIdFromClerkID(c)
+	if !ok {
 		return
 	}
 
@@ -88,20 +113,14 @@ func CreateDeck(c *gin.Context) {
 		return
 	}
 
-	// Manually set OwnerID from the token, ignoring any value from the request body
-	ownerID, err := uuid.Parse(userID.(string))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse user ID"})
-		return
-	}
-	deck.OwnerID = ownerID
+	deck.OwnerID = userID
 
 	if err := deck.Validate(); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	err = database.DB.QueryRow(
+	err := database.DB.QueryRow(
 		"INSERT INTO decks (owner_id, labels, title, description) VALUES ($1, $2, $3, $4) RETURNING id",
 		deck.OwnerID, deck.Labels, deck.Title, deck.Description,
 	).Scan(&deck.ID)
@@ -116,9 +135,8 @@ func CreateDeck(c *gin.Context) {
 
 // UpdateDeck updates an existing deck
 func UpdateDeck(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+	userID, ok := getUserIdFromClerkID(c)
+	if !ok {
 		return
 	}
 
@@ -160,7 +178,6 @@ func UpdateDeck(c *gin.Context) {
 		return
 	}
 
-	// Get the update deck
 	err = database.DB.QueryRow(
 		"SELECT id, owner_id, labels, title, description FROM decks WHERE id = $1",
 		deckID,
@@ -175,9 +192,8 @@ func UpdateDeck(c *gin.Context) {
 
 // DeleteUser deletes a deck
 func DeleteDeck(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+	userID, ok := getUserIdFromClerkID(c)
+	if !ok {
 		return
 	}
 

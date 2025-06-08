@@ -3,6 +3,7 @@ package controllers
 import (
 	"api/src/database"
 	"api/src/models"
+	"database/sql"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -11,9 +12,8 @@ import (
 
 // GetFlashcards returns all flashcards from a specific deck that belongs to the authenticated user.
 func GetFlashcards(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+	userID, ok := getUserIdFromClerkID(c)
+	if !ok {
 		return
 	}
 
@@ -57,9 +57,8 @@ func GetFlashcards(c *gin.Context) {
 
 // GetFlashcard returns a single flashcard by its ID, ensuring it belongs to the authenticated user.
 func GetFlashcard(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+	userID, ok := getUserIdFromClerkID(c)
+	if !ok {
 		return
 	}
 
@@ -80,7 +79,11 @@ func GetFlashcard(c *gin.Context) {
 	).Scan(&flashcard.ID, &flashcard.ParentDeck, &flashcard.Starred, &flashcard.Front, &flashcard.Back)
 
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Flashcard not found or access denied"})
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Flashcard not found or access denied"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve flashcard"})
 		return
 	}
 
@@ -89,9 +92,8 @@ func GetFlashcard(c *gin.Context) {
 
 // CreateFlashcard creates a new flashcard in a specific deck.
 func CreateFlashcard(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+	userID, ok := getUserIdFromClerkID(c)
+	if !ok {
 		return
 	}
 
@@ -103,7 +105,7 @@ func CreateFlashcard(c *gin.Context) {
 
 	var ownerID uuid.UUID
 	err = database.DB.QueryRow("SELECT owner_id FROM decks WHERE id = $1", deckID).Scan(&ownerID)
-	if err != nil || ownerID.String() != userID {
+	if err != nil || ownerID != userID {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Access to deck denied"})
 		return
 	}
@@ -135,9 +137,8 @@ func CreateFlashcard(c *gin.Context) {
 
 // UpdateFlashcard updates an existing flashcard.
 func UpdateFlashcard(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+	userID, ok := getUserIdFromClerkID(c)
+	if !ok {
 		return
 	}
 
@@ -178,9 +179,8 @@ func UpdateFlashcard(c *gin.Context) {
 
 // DeleteFlashcard deletes a flashcard.
 func DeleteFlashcard(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+	userID, ok := getUserIdFromClerkID(c)
+	if !ok {
 		return
 	}
 

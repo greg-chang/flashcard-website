@@ -2,14 +2,11 @@ package middleware
 
 import (
 	"api/src/config"
-	"api/src/database"
-	"database/sql"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 )
 
 // JWTAuthMiddleware is a middleware that validates JWT tokens
@@ -60,27 +57,9 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 
 		// Check if the token is valid
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			clerkID, ok := claims["sub"].(string)
-			if !ok {
-				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user identifier in token"})
-				c.Abort()
-				return
-			}
-
-			var internalUserID uuid.UUID
-			err := database.DB.QueryRow("SELECT id FROM users WHERE clerk_id = $1", clerkID).Scan(&internalUserID)
-			if err != nil {
-				if err == sql.ErrNoRows {
-					c.JSON(http.StatusForbidden, gin.H{"error": "User not found in application database"})
-					c.Abort()
-					return
-				}
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify user"})
-				c.Abort()
-				return
-			}
-
-			c.Set("user_id", internalUserID)
+			// Add the claims to the context
+			c.Set("user_id", claims["sub"])
+			c.Set("email", claims["email"])
 			c.Next()
 		} else {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})

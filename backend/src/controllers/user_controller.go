@@ -71,6 +71,13 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
+	clerkID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+		return
+	}
+	user.ClerkID = clerkID.(string)
+
 	if err := user.Validate(); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -97,6 +104,12 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
+	clerkID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+		return
+	}
+
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -109,8 +122,8 @@ func UpdateUser(c *gin.Context) {
 	}
 
 	result, err := database.DB.Exec(
-		"UPDATE users SET name = $1, email = $2 WHERE id = $3",
-		user.Name, user.Email, id,
+		"UPDATE users SET name = $1, email = $2 WHERE id = $3 AND clerk_id = $4",
+		user.Name, user.Email, id, clerkID,
 	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -124,7 +137,7 @@ func UpdateUser(c *gin.Context) {
 	}
 
 	if rowsAffected == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found or access denied"})
 		return
 	}
 
@@ -149,7 +162,13 @@ func DeleteUser(c *gin.Context) {
 		return
 	}
 
-	result, err := database.DB.Exec("DELETE FROM users WHERE id = $1", id)
+	clerkID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+		return
+	}
+
+	result, err := database.DB.Exec("DELETE FROM users WHERE id = $1 AND clerk_id = $2", id, clerkID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -162,7 +181,7 @@ func DeleteUser(c *gin.Context) {
 	}
 
 	if rowsAffected == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found or access denied"})
 		return
 	}
 
