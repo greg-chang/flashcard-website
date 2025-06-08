@@ -3,8 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from '@clerk/nextjs';
 import { ChakraProvider, extendTheme } from '@chakra-ui/react';
 import "./globals.css";
-import Navbar from "../components/ui/navbar";
-import theme from './theme';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,14 +26,14 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <ChakraProvider theme={theme}>
-        <html lang="en">
-          <body
-            className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-          >
-            {children}
-          </body>
-        </html>
+      <ChakraProvider>
+      <html lang="en">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          {children}
+        </body>
+      </html>
       </ChakraProvider>
     </ClerkProvider>
   );

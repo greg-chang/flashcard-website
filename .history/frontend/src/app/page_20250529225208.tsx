@@ -1,9 +1,8 @@
 'use client';
-import Homepage from '@/components/Homepage';
-import UserInterface from '@/components/UserInterface';
-import Dashboard from '@/components/Dashboard';
+import Homepage from './components/Homepage';
+import UserInterface from './components/UserInterface';
+import Dashboard from './components/Dashboard';
 import { useUser } from '@clerk/nextjs';
-// import UserInterface from '@/components/UserInterface';
 
 export default function Home() {
   const { isSignedIn, isLoaded } = useUser();

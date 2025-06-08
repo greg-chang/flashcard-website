@@ -1,9 +1,7 @@
 'use client';
-import Homepage from '@/components/Homepage';
-import UserInterface from '@/components/UserInterface';
-import Dashboard from '@/components/Dashboard';
+import Homepage from './components/Homepage';
+import UserInterface from './components/UserInterface';
 import { useUser } from '@clerk/nextjs';
-// import UserInterface from '@/components/UserInterface';
 
 export default function Home() {
   const { isSignedIn, isLoaded } = useUser();
@@ -12,7 +10,7 @@ export default function Home() {
   }
   return (
     <main className="min-h-screen bg-gray-100">
-      {isSignedIn ? <Dashboard /> : <Homepage />}
+      {isSignedIn ? <UserInterface /> : <Homepage />}
     </main>
   );
 }
