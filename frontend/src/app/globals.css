@@ -1,8 +1,22 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: var(--color-sand);
+  --foreground: var(--color-walnut);
+}
+
+@theme {  
+  /* Light */
+  --color-sand: #F0EAE2 ;
+  /* Medium */
+  --color-coffee: #937156 ;
+  /* Medium Text */
+  --color-walnut: #8F6E4F ;
+  /* VERY DARK */
+  --color-expresso: #341D09 ;
+  /* DESATURATED MEDIUM */
+  --color-mocha: #604E3C ;
+
 }
 
 @theme inline {

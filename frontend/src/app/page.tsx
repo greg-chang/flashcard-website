@@ -1,5 +1,5 @@
 'use client';
-import UserInterface from './components/UserInterface';
+import UserInterface from '@/components/UserInterface';
 
 export default function Home() {
   return (
