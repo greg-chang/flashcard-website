@@ -61,9 +61,9 @@ export default function CreateDeckPage() {
         <h2 className="text-xl font-semibold mb-2 text-expresso">Cards</h2>
         <div className="space-y-4 mb-6">
           {cards.map((card, idx) => (
-            <div key={idx} className="flex bg-white items-center border border-coffee rounded-xl">
+            <div key={idx} className="flex bg-white items-center border border-walnut rounded-xl">
               <textarea
-                className="flex-1 rounded px-3 py-2 focus:outline-none focus:ring-0 focus:ring-coffee resize-none"
+                className="text-walnut flex-1 rounded px-3 py-2 focus:outline-none focus:ring-0 focus:ring-coffee resize-none"
                 value={card.front}
                 onChange={(e) => handleCardChange(idx, "front", e.target.value)}
                 placeholder="Term"
@@ -71,7 +71,7 @@ export default function CreateDeckPage() {
               />
               <div className="w-px h-10 bg-[#8F6E4F4D] mx-1" />
               <textarea
-                className="flex-1 rounded px-3 py-2 focus:outline-none focus:ring-0 focus:ring-coffee resize-none"
+                className="text-walnut flex-1 rounded px-3 py-2 focus:outline-none focus:ring-0 focus:ring-coffee resize-none"
                 value={card.back}
                 onChange={(e) => handleCardChange(idx, "back", e.target.value)}
                 placeholder="Definition"
