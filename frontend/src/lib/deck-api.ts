@@ -58,3 +58,30 @@ export async function createDeckWithFlashcards(
 
   return createdDeck;
 }
+
+/**
+ * Fetches all decks belonging to the authenticated user.
+ * @param getToken Function to get the Clerk JWT (from useAuth)
+ * @returns Array of Deck objects
+ */
+export async function getDecks(
+  getToken: () => Promise<string | null>,
+): Promise<Deck[]> {
+  const token = await getToken();
+  if (!token) throw new Error("No authentication token found");
+
+  const res = await fetch("http://localhost:8000/api/go/decks", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(errorText);
+  }
+
+  const decks: Deck[] = await res.json();
+  return decks;
+}
