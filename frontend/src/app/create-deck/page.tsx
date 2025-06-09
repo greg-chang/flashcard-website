@@ -41,7 +41,18 @@ export default function CreateDeckPage() {
       setCards([{ front: "", back: "" }]);
       alert("Deck created!");
     } catch (err: any) {
-      alert(`Failed to create deck.\n${err.message || err}`);
+      let message = "Failed to create deck.";
+      if (err?.message) {
+        try {
+          // Try to parse as JSON and show the error field if present
+          const parsed = JSON.parse(err.message);
+          message = parsed.error || parsed.message || message;
+        } catch {
+          // If not JSON, just show the message string
+          message = err.message;
+        }
+      }
+      alert(message);
       console.error(err);
     }
   };
