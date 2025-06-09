@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { getDecks } from "../../lib/deck-api";
+import { getAllDecks } from "../../lib/deck-api";
 import type { Deck } from "../../types/deck";
 import Link from "next/link";
 
@@ -17,7 +17,7 @@ export default function DecksPage() {
       setLoading(true);
       setError(null);
       try {
-        const data = await getDecks(getToken);
+        const data = await getAllDecks(getToken);
         setDecks(data);
       } catch (err: any) {
         setError(err.message || "Failed to fetch decks.");
