@@ -8,7 +8,7 @@ import (
 
 type Deck struct {
 	ID          uuid.UUID `json:"id"`
-	OwnerID     uuid.UUID `json:"owner_id" binding:"required"`
+	OwnerID     uuid.UUID `json:"owner_id"`
 	Labels      []string  `json:"labels"`
 	Title       string    `json:"title" binding:"required"`
 	Description string    `json:"description"`
