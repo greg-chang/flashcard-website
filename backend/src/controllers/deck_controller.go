@@ -32,7 +32,7 @@ func GetDecks(c *gin.Context) {
 	var decks []models.Deck
 	for rows.Next() {
 		var d models.Deck
-		if err := rows.Scan(&d.ID, &d.OwnerID, &d.Labels, &d.Title, &d.Description); err != nil {
+		if err := rows.Scan(&d.ID, &d.OwnerID, pq.Array(&d.Labels), &d.Title, &d.Description); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -64,7 +64,7 @@ func GetDeck(c *gin.Context) {
 	err = database.DB.QueryRow(
 		"SELECT id, owner_id, labels, title, description FROM decks WHERE id = $1 AND owner_id = $2",
 		deckID, userID,
-	).Scan(&deck.ID, &deck.OwnerID, &deck.Labels, &deck.Title, &deck.Description)
+	).Scan(&deck.ID, &deck.OwnerID, pq.Array(&deck.Labels), &deck.Title, &deck.Description)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Deck not found or access denied"})
@@ -160,7 +160,7 @@ func UpdateDeck(c *gin.Context) {
 	err = database.DB.QueryRow(
 		"SELECT id, owner_id, labels, title, description FROM decks WHERE id = $1",
 		deckID,
-	).Scan(&deck.ID, &deck.OwnerID, &deck.Labels, &deck.Title, &deck.Description)
+	).Scan(&deck.ID, &deck.OwnerID, pq.Array(&deck.Labels), &deck.Title, &deck.Description)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
