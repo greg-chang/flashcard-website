@@ -7,6 +7,7 @@ import (
 	"api/src/database"
 	"api/src/models"
 
+	"github.com/clerk/clerk-sdk-go/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -71,12 +72,12 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	clerkID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+	claims, ok := clerk.SessionClaimsFromContext(c.Request.Context())
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
-	user.ClerkID = clerkID.(string)
+	user.ClerkID = claims.Subject
 
 	if err := user.Validate(); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -104,9 +105,9 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	clerkID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+	claims, ok := clerk.SessionClaimsFromContext(c.Request.Context())
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
@@ -123,7 +124,7 @@ func UpdateUser(c *gin.Context) {
 
 	result, err := database.DB.Exec(
 		"UPDATE users SET name = $1, email = $2 WHERE id = $3 AND clerk_id = $4",
-		user.Name, user.Email, id, clerkID,
+		user.Name, user.Email, id, claims.Subject,
 	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -162,13 +163,13 @@ func DeleteUser(c *gin.Context) {
 		return
 	}
 
-	clerkID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
+	claims, ok := clerk.SessionClaimsFromContext(c.Request.Context())
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
-	result, err := database.DB.Exec("DELETE FROM users WHERE id = $1 AND clerk_id = $2", id, clerkID)
+	result, err := database.DB.Exec("DELETE FROM users WHERE id = $1 AND clerk_id = $2", id, claims.Subject)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

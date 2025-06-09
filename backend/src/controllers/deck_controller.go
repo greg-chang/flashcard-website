@@ -10,32 +10,10 @@ import (
 	"github.com/google/uuid"
 )
 
-// getUserIdFromClerkID is a helper function to get the user's UUID from their Clerk ID
-func getUserIdFromClerkID(c *gin.Context) (uuid.UUID, bool) {
-	clerkID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in token"})
-		return uuid.Nil, false
-	}
-
-	var userID uuid.UUID
-	err := database.DB.QueryRow("SELECT id FROM users WHERE clerk_id = $1", clerkID).Scan(&userID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			c.JSON(http.StatusForbidden, gin.H{"error": "User not found in database"})
-			return uuid.Nil, false
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user from database"})
-		return uuid.Nil, false
-	}
-
-	return userID, true
-}
-
 // GetDecks returns all decks for a single user by ID
 // Takes in the users ID as a parameter
 func GetDecks(c *gin.Context) {
-	userID, ok := getUserIdFromClerkID(c)
+	userID, ok := GetUserIDFromClerkID(c)
 	if !ok {
 		return
 	}
@@ -76,7 +54,7 @@ func GetDeck(c *gin.Context) {
 		return
 	}
 
-	userID, ok := getUserIdFromClerkID(c)
+	userID, ok := GetUserIDFromClerkID(c)
 	if !ok {
 		return
 	}
@@ -102,7 +80,7 @@ func GetDeck(c *gin.Context) {
 // OwnerID is taken from the URL path parameter.
 // Title, Description, and Labels are taken from URL query parameters.
 func CreateDeck(c *gin.Context) {
-	userID, ok := getUserIdFromClerkID(c)
+	userID, ok := GetUserIDFromClerkID(c)
 	if !ok {
 		return
 	}
@@ -135,7 +113,7 @@ func CreateDeck(c *gin.Context) {
 
 // UpdateDeck updates an existing deck
 func UpdateDeck(c *gin.Context) {
-	userID, ok := getUserIdFromClerkID(c)
+	userID, ok := GetUserIDFromClerkID(c)
 	if !ok {
 		return
 	}
@@ -192,7 +170,7 @@ func UpdateDeck(c *gin.Context) {
 
 // DeleteUser deletes a deck
 func DeleteDeck(c *gin.Context) {
-	userID, ok := getUserIdFromClerkID(c)
+	userID, ok := GetUserIDFromClerkID(c)
 	if !ok {
 		return
 	}

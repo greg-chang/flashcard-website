@@ -12,12 +12,12 @@ import (
 
 // GetFlashcards returns all flashcards from a specific deck that belongs to the authenticated user.
 func GetFlashcards(c *gin.Context) {
-	userID, ok := getUserIdFromClerkID(c)
+	userID, ok := GetUserIDFromClerkID(c)
 	if !ok {
 		return
 	}
 
-	deckID, err := uuid.Parse(c.Param("deckID"))
+	deckID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Deck UUID format"})
 		return
@@ -57,7 +57,7 @@ func GetFlashcards(c *gin.Context) {
 
 // GetFlashcard returns a single flashcard by its ID, ensuring it belongs to the authenticated user.
 func GetFlashcard(c *gin.Context) {
-	userID, ok := getUserIdFromClerkID(c)
+	userID, ok := GetUserIDFromClerkID(c)
 	if !ok {
 		return
 	}
@@ -92,12 +92,12 @@ func GetFlashcard(c *gin.Context) {
 
 // CreateFlashcard creates a new flashcard in a specific deck.
 func CreateFlashcard(c *gin.Context) {
-	userID, ok := getUserIdFromClerkID(c)
+	userID, ok := GetUserIDFromClerkID(c)
 	if !ok {
 		return
 	}
 
-	deckID, err := uuid.Parse(c.Param("deckID"))
+	deckID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Deck UUID format"})
 		return
@@ -137,7 +137,7 @@ func CreateFlashcard(c *gin.Context) {
 
 // UpdateFlashcard updates an existing flashcard.
 func UpdateFlashcard(c *gin.Context) {
-	userID, ok := getUserIdFromClerkID(c)
+	userID, ok := GetUserIDFromClerkID(c)
 	if !ok {
 		return
 	}
@@ -179,7 +179,7 @@ func UpdateFlashcard(c *gin.Context) {
 
 // DeleteFlashcard deletes a flashcard.
 func DeleteFlashcard(c *gin.Context) {
-	userID, ok := getUserIdFromClerkID(c)
+	userID, ok := GetUserIDFromClerkID(c)
 	if !ok {
 		return
 	}

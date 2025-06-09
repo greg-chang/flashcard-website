@@ -6,19 +6,24 @@ import (
 
 	"api/src/database"
 	"api/src/routes"
+
+	"github.com/clerk/clerk-sdk-go/v2"
 )
 
 func main() {
-	// Initialize database
+	clerkKey := os.Getenv("CLERK_JWT_SECRET")
+	if clerkKey == "" {
+		log.Fatal("CLERK_JWT_SECRET environment variable not set")
+	}
+	clerk.SetKey(clerkKey)
+
 	if err := database.InitDB(); err != nil {
 		log.Fatal(err)
 	}
 	defer database.DB.Close()
 
-	// Setup router
 	r := routes.SetupRouter()
 
-	// Start server
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8000"

@@ -11,15 +11,12 @@ import (
 func SetupRouter() *gin.Engine {
 	router := gin.Default()
 
-	// Apply CORS middleware to all routes
 	router.Use(middleware.CORS())
 
-	// Public routes
 	router.GET("/api/go/health", controllers.HealthCheck)
 
-	// Protected routes (to be implemented)
 	protected := router.Group("/api/go")
-	protected.Use(middleware.JWTAuthMiddleware())
+	protected.Use(middleware.ClerkMiddleware())
 	{
 		protected.GET("/users", controllers.GetUsers)
 		protected.GET("/users/:id", controllers.GetUser)
@@ -34,8 +31,8 @@ func SetupRouter() *gin.Engine {
 		protected.DELETE("/decks/:id", controllers.DeleteDeck)
 
 		// Flashcard routes
-		protected.GET("/decks/:deckID/flashcards", controllers.GetFlashcards)
-		protected.POST("/decks/:deckID/flashcards", controllers.CreateFlashcard)
+		protected.GET("/decks/:id/flashcards", controllers.GetFlashcards)
+		protected.POST("/decks/:id/flashcards", controllers.CreateFlashcard)
 		protected.GET("/flashcards/:id", controllers.GetFlashcard)
 		protected.PUT("/flashcards/:id", controllers.UpdateFlashcard)
 		protected.DELETE("/flashcards/:id", controllers.DeleteFlashcard)
