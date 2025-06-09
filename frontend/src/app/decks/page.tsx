@@ -18,7 +18,7 @@ export default function DecksPage() {
       setError(null);
       try {
         const data = await getAllDecks(getToken);
-        setDecks(data);
+        setDecks(Array.isArray(data) ? data : []);
       } catch (err: any) {
         setError(err.message || "Failed to fetch decks.");
       } finally {
@@ -33,6 +33,9 @@ export default function DecksPage() {
       <h1 className="text-3xl font-bold mb-6 text-expresso">Your Decks</h1>
       {loading && <div>Loading...</div>}
       {error && <div className="text-red-600 mb-4">{error}</div>}
+      {!loading && Array.isArray(decks) && decks.length === 0 && !error && (
+        <div className="text-mocha mt-8">You have no decks yet.</div>
+      )}
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
         {decks.map((deck) => (
           <Link
@@ -61,9 +64,6 @@ export default function DecksPage() {
           </Link>
         ))}
       </div>
-      {!loading && decks.length === 0 && (
-        <div className="text-mocha mt-8">You have no decks yet.</div>
-      )}
     </div>
   );
 }
