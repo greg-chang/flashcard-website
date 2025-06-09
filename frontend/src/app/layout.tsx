@@ -28,16 +28,14 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <ChakraProvider theme={theme}>
-        <html lang="en">
-          <body
-            className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-          >
-            <Navbar />
-            {children}
-          </body>
-        </html>
-      </ChakraProvider>
+      <html lang="en">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          <Navbar />
+          {children}
+        </body>
+      </html>
     </ClerkProvider>
   );
 }
