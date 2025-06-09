@@ -1,20 +1,20 @@
 import { Deck } from "../types/deck";
 import { Flashcard } from "../types/flashcard";
-import { getAuth } from "@clerk/nextjs/server"; // or useAuth if in a React component
+import { useAuth } from "@clerk/nextjs";
 
 /**
  * Creates a deck and its flashcards for the authenticated user.
  * @param deck Deck object (title, description, labels)
  * @param flashcards Array of flashcards (front, back, starred)
- * @param getToken Function to get the Clerk JWT (from useAuth or similar)
  * @returns The created Deck object from the backend
  */
+
 export async function createDeckWithFlashcards(
   deck: Omit<Deck, "id" | "owner_id">,
   flashcards: Omit<Flashcard, "id" | "parent_deck">[],
-  getToken: () => Promise<string | null>,
 ): Promise<Deck> {
-  const token = await getToken();
+  const token = await useAuth();
+
   if (!token) throw new Error("No authentication token found");
 
   // 1. Create the deck
