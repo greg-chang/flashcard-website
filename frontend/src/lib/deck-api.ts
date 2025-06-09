@@ -114,3 +114,35 @@ export async function getDeck(
   const deck: Deck = await res.json();
   return deck;
 }
+
+/**
+ * Fetches all flashcards for a given deck ID for the authenticated user.
+ * @param deckId The deck's ID (string)
+ * @param getToken Function to get the Clerk JWT (from useAuth)
+ * @returns Array of Flashcard objects
+ */
+export async function getAllFlashcards(
+  deckId: string,
+  getToken: () => Promise<string | null>,
+): Promise<Flashcard[]> {
+  const token = await getToken();
+  if (!token) throw new Error("No authentication token found");
+
+  const res = await fetch(
+    `http://localhost:8000/api/go/decks/${deckId}/flashcards`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(errorText);
+  }
+
+  const flashcards: Flashcard[] = await res.json();
+  return flashcards;
+}
