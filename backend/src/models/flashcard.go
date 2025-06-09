@@ -8,7 +8,7 @@ import (
 
 type Flashcard struct {
 	ID         uuid.UUID `json:"id"`
-	ParentDeck uuid.UUID `json:"parent_deck" binding:"required"`
+	ParentDeck uuid.UUID `json:"parent_deck"`
 	Starred    *bool     `json:"starred" binding:"required"`
 	Front      string    `json:"front" binding:"required"`
 	Back       string    `json:"back" binding:"required"`

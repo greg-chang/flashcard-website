@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 // GetDecks returns all decks for a single user by ID
@@ -100,7 +101,7 @@ func CreateDeck(c *gin.Context) {
 
 	err := database.DB.QueryRow(
 		"INSERT INTO decks (owner_id, labels, title, description) VALUES ($1, $2, $3, $4) RETURNING id",
-		deck.OwnerID, deck.Labels, deck.Title, deck.Description,
+		deck.OwnerID, pq.StringArray(deck.Labels), deck.Title, deck.Description,
 	).Scan(&deck.ID)
 
 	if err != nil {
@@ -137,7 +138,7 @@ func UpdateDeck(c *gin.Context) {
 
 	result, err := database.DB.Exec(
 		"UPDATE decks SET labels = $1, title = $2, description = $3 WHERE id = $4 AND owner_id = $5",
-		deck.Labels, deck.Title, deck.Description, deckID, userID,
+		pq.StringArray(deck.Labels), deck.Title, deck.Description, deckID, userID,
 	)
 
 	if err != nil {

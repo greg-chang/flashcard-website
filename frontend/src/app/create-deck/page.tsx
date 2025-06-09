@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "@clerk/nextjs";
+import { createDeckWithFlashcards } from "../../lib/deck-api";
 
 export default function CreateDeckPage() {
   const [title, setTitle] = useState("Untitled Deck");
   const [description, setDescription] = useState("");
   const [cards, setCards] = useState([{ front: "", back: "" }]);
+  const { getToken } = useAuth();
 
   const handleCardChange = (
     idx: number,
@@ -23,41 +26,35 @@ export default function CreateDeckPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // 1. Create the deck
-    const deckRes = await fetch("/api/go/decks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, description, labels: [] }),
-    });
-
-    if (!deckRes.ok) {
-      const errorText = await deckRes.text();
-      alert(`Failed to create deck.`);
-      console.error(`${errorText}`);
-      return;
-    }
-
-    const deck = await deckRes.json();
-
-    // 2. Create each flashcard
-    for (const card of cards) {
-      await fetch(`/api/go/decks/${deck.id}/flashcards`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+    try {
+      await createDeckWithFlashcards(
+        { title, description, labels: [] },
+        cards.map((card) => ({
           front: card.front,
           back: card.back,
           starred: false,
-        }),
-      });
+        })),
+        getToken,
+      );
+      setTitle("Untitled Deck");
+      setDescription("");
+      setCards([{ front: "", back: "" }]);
+      alert("Deck created!");
+    } catch (err: any) {
+      let message = "Failed to create deck.";
+      if (err?.message) {
+        try {
+          // Try to parse as JSON and show the error field if present
+          const parsed = JSON.parse(err.message);
+          message = parsed.error || parsed.message || message;
+        } catch {
+          // If not JSON, just show the message string
+          message = err.message;
+        }
+      }
+      alert(message);
+      console.error(err);
     }
-
-    // 3. Reset form and notify user
-    setTitle("Untitled Deck");
-    setDescription("");
-    setCards([{ front: "", back: "" }]);
-    alert("Deck created!");
   };
 
   return (
