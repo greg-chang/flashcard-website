@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"os"
 
@@ -8,7 +9,15 @@ import (
 	"api/src/routes"
 
 	"github.com/clerk/clerk-sdk-go/v2"
+	"github.com/gin-gonic/gin"
 )
+
+func SetupRouter(db *sql.DB) *gin.Engine {
+	database.DB = db
+
+	r := routes.SetupRouter()
+	return r
+}
 
 func main() {
 	clerkKey := os.Getenv("CLERK_JWT_SECRET")
@@ -22,7 +31,7 @@ func main() {
 	}
 	defer database.DB.Close()
 
-	r := routes.SetupRouter()
+	r := SetupRouter(database.DB)
 
 	port := os.Getenv("PORT")
 	if port == "" {
