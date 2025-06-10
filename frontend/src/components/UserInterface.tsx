@@ -29,7 +29,7 @@ export default function UserInterface() {
       });
 
       const users = response.data || [];
-      const exists = users.some(u => u.email === user?.emailAddresses[0]?.emailAddress);
+      const exists = users.some((u: { email: string }) => u.email === user?.emailAddresses[0]?.emailAddress);
 
       if (!exists && user?.emailAddresses?.[0]?.emailAddress) {
         const newUser: CreateUserData = {

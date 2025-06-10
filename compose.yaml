@@ -10,7 +10,11 @@ services:
     depends_on:
       - goapp
     environment:
-      - NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+      - NEXT_PUBLIC_BACKEND_URL=http://goapp:8000
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     # volumes:
     #   - ./frontend:/app
     #   - /app/node_modules

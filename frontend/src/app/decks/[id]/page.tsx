@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { getDeck, getAllFlashcards } from "../../../lib/deck-api";
 import type { Deck } from "../../../types/deck";
 import type { Flashcard } from "../../../types/flashcard";
+import Link from "next/link";
 
 export default function ViewDeckPage() {
   const { id } = useParams<{ id: string }>();
@@ -53,10 +54,14 @@ export default function ViewDeckPage() {
 
   return (
     <div className="max-w-5xl mx-auto mt-24 p-8">
-      <div className="mb-4">
-        <div className="min-w-96 w-full text-3xl font-bold text-expresso">
-          {deck.title}
-        </div>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-3xl font-bold text-expresso">{deck.title}</h1>
+        <Link
+          href={`/study/${deck.id}`}
+          className="px-6 py-2 bg-coffee text-white rounded-lg hover:bg-expresso transition"
+        >
+          Study
+        </Link>
       </div>
       <div className="mb-6">
         <div className="w-full min-h-20 text-expresso bg-[#8F6E4F33] border-none rounded px-3 py-2">
@@ -70,15 +75,15 @@ export default function ViewDeckPage() {
             key={card.id}
             className="flex bg-white items-center border border-walnut rounded-xl"
           >
-            <div className="min-h-20 text-walnut flex-1 rounded px-3 py-2">
+            <div className="min-h-20 text-walnut flex-1 px-3 py-2 flex-row items-start justify-start">
               {card.front}
             </div>
-            <div className="min-h-20 w-px h-10 bg-[#8F6E4F4D] mx-1" />
-            <div className="text-walnut flex-1 rounded px-3 py-2">
+            <div className="w-px self-stretch bg-gray-300 mx-1" />
+            <div className="min-h-20 text-walnut flex-1 px-3 py-2 flex-row items-start justify-start">
               {card.back}
             </div>
             {card.starred && (
-              <span className="ml-2 text-yellow-500" title="Starred">
+              <span className="ml-2 pr-2 text-yellow-500" title="Starred">
                 ★
               </span>
             )}
