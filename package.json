@@ -27,5 +27,8 @@
 		"backend/**/*.go": [
 			"gofmt -w"
 		]
+	},
+	"dependencies": {
+		"react-icons": "^5.5.0"
 	}
 }
