@@ -17,7 +17,6 @@ import {
   ChakraProvider,
 } from '@chakra-ui/react';
 import { FiPlus, FiUpload } from 'react-icons/fi';
-import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
@@ -169,15 +168,15 @@ export default function DashboardPage() {
             {/* Bottom Box: Placeholder */}
             <Box bg="white" p={6} borderRadius="xl" boxShadow="md" border="2px solid #D5C6BA" minH="250px">
               {/* Avatar, Preview, or Placeholder */}
-                <Image
-                src={Illustration}
-                alt="Study Lounge Illustration"
-                width={600}
-                height={450}
-                layout="responsive"
-                objectFit="contain"
-                priority
-              />
+              <Image
+              src={Illustration}
+              alt="Study Lounge Illustration"
+              width={600}
+              height={450}
+              layout="responsive"
+              objectFit="contain"
+              priority
+            />
             </Box>
           </Flex>
         </Flex>

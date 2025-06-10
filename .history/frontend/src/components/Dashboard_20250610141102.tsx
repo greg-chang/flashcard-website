@@ -17,13 +17,11 @@ import {
   ChakraProvider,
 } from '@chakra-ui/react';
 import { FiPlus, FiUpload } from 'react-icons/fi';
-import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import Footer from '@/components/footer';
 import theme from '@/app/theme';
-import Illustration from '@/assets/Illustration.png';
 
 interface Deck {
   id: string;
@@ -74,9 +72,9 @@ export default function DashboardPage() {
       <Flex direction="column" minH="100vh" bg="#FFF8F3">
         <Flex p={10} gap={6} justify="center" flex="1" flexWrap="wrap">
           {/* Left: Deck List */}
-          <Box w={['100%', '48%', '540px']} bg="white" p={6} borderRadius="xl" boxShadow="md" border="2px solid #D5C6BA">
+          <Box w={['100%', '48%', '540px']} bg="#F4E6DD" p={6} borderRadius="xl" boxShadow="md" border="2px solid #D5C6BA">
             <Flex justify="space-between" align="center" mb={4}>
-              <Heading fontSize="xl" color='#3D2C23'>Decks</Heading>
+              <Heading fontSize="xl">Decks</Heading>
             </Flex>
 
             <Text mb={4} fontSize="sm" color="gray.600">
@@ -96,7 +94,7 @@ export default function DashboardPage() {
               <FiPlus size="24px" color="gray" />
             </Box>
 
-            <VStack spacing={5} maxH="calc(100vh - 280px)" overflowY="auto" align="stretch">
+            <VStack spacing={4} maxH="60vh" overflowY="auto" align="stretch">
               {loading && <Spinner alignSelf="center" />}
               {error && <Text color="red.500">{error}</Text>}
               {!loading && decks.length === 0 && (
@@ -125,10 +123,10 @@ export default function DashboardPage() {
                       }}
                     />
                   </Flex>
-                  <Text fontSize="md" color="gray.600">{deck.description}</Text>
-                  <HStack mt={3}>
+                  <Text fontSize="sm" color="gray.600">{deck.description}</Text>
+                  <HStack mt={2}>
                     {deck.labels.map((label, i) => (
-                      <Tag key={i} size="md" borderRadius="full" bg="#E7BFB1" color="#F4E6DD">
+                      <Tag key={i} size="sm" borderRadius="full" bg="#E7BFB1" color="#F4E6DD">
                         <TagLabel>{label}</TagLabel>
                       </Tag>
                     ))}
@@ -138,14 +136,13 @@ export default function DashboardPage() {
             </VStack>
           </Box>
 
-          {/* Right Column:Study + image */}
-          <Flex direction="column" w={['100%', '48%', '540px']} gap={4}>
+          {/* Right Column: Two Boxes */}
+          <Flex direction="column" w="360px" gap={6}>
             {/* Top Box: Study */}
-            <Box bg="white" p={6} borderRadius="xl" boxShadow="md" border="2px solid #D5C6BA" minH="250px">
-              <Heading fontSize="xl" mb={2} color = '#3D2C23'>Study</Heading>
+            <Box bg="#F4E6DD" p={6} borderRadius="xl" boxShadow="md" border="2px solid #D5C6BA" minH="250px">
+              <Heading fontSize="xl" mb={2}>Study</Heading>
               <Text fontSize="sm" color="gray.600">Review your flashcard decks</Text>
               <Select
-                border="2px solid #D5C6BA"
                 placeholder="Select Deck"
                 mt={4}
                 onChange={(e) => setSelectedDeckId(e.target.value)}
@@ -167,17 +164,8 @@ export default function DashboardPage() {
             </Box>
 
             {/* Bottom Box: Placeholder */}
-            <Box bg="white" p={6} borderRadius="xl" boxShadow="md" border="2px solid #D5C6BA" minH="250px">
+            <Box bg="#F4E6DD" p={6} borderRadius="xl" boxShadow="md" border="2px solid #D5C6BA" minH="250px">
               {/* Avatar, Preview, or Placeholder */}
-                <Image
-                src={Illustration}
-                alt="Study Lounge Illustration"
-                width={600}
-                height={450}
-                layout="responsive"
-                objectFit="contain"
-                priority
-              />
             </Box>
           </Flex>
         </Flex>

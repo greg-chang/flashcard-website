@@ -17,13 +17,11 @@ import {
   ChakraProvider,
 } from '@chakra-ui/react';
 import { FiPlus, FiUpload } from 'react-icons/fi';
-import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import Footer from '@/components/footer';
 import theme from '@/app/theme';
-import Illustration from '@/assets/Illustration.png';
 
 interface Deck {
   id: string;
@@ -74,9 +72,9 @@ export default function DashboardPage() {
       <Flex direction="column" minH="100vh" bg="#FFF8F3">
         <Flex p={10} gap={6} justify="center" flex="1" flexWrap="wrap">
           {/* Left: Deck List */}
-          <Box w={['100%', '48%', '540px']} bg="white" p={6} borderRadius="xl" boxShadow="md" border="2px solid #D5C6BA">
+          <Box w={['100%', '48%', '540px']} bg="#F4E6DD" p={6} borderRadius="xl" boxShadow="md" border="2px solid #D5C6BA">
             <Flex justify="space-between" align="center" mb={4}>
-              <Heading fontSize="xl" color='#3D2C23'>Decks</Heading>
+              <Heading fontSize="xl">Decks</Heading>
             </Flex>
 
             <Text mb={4} fontSize="sm" color="gray.600">
@@ -141,8 +139,8 @@ export default function DashboardPage() {
           {/* Right Column:Study + image */}
           <Flex direction="column" w={['100%', '48%', '540px']} gap={4}>
             {/* Top Box: Study */}
-            <Box bg="white" p={6} borderRadius="xl" boxShadow="md" border="2px solid #D5C6BA" minH="250px">
-              <Heading fontSize="xl" mb={2} color = '#3D2C23'>Study</Heading>
+            <Box bg="#F4E6DD" p={6} borderRadius="xl" boxShadow="md" border="2px solid #D5C6BA" minH="250px">
+              <Heading fontSize="xl" mb={2}>Study</Heading>
               <Text fontSize="sm" color="gray.600">Review your flashcard decks</Text>
               <Select
                 border="2px solid #D5C6BA"
@@ -167,17 +165,8 @@ export default function DashboardPage() {
             </Box>
 
             {/* Bottom Box: Placeholder */}
-            <Box bg="white" p={6} borderRadius="xl" boxShadow="md" border="2px solid #D5C6BA" minH="250px">
+            <Box bg="#F4E6DD" p={6} borderRadius="xl" boxShadow="md" border="2px solid #D5C6BA" minH="250px">
               {/* Avatar, Preview, or Placeholder */}
-                <Image
-                src={Illustration}
-                alt="Study Lounge Illustration"
-                width={600}
-                height={450}
-                layout="responsive"
-                objectFit="contain"
-                priority
-              />
             </Box>
           </Flex>
         </Flex>
