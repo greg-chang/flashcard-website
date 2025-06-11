@@ -56,12 +56,20 @@ export default function ViewDeckPage() {
     <div className="max-w-5xl mx-auto mt-24 p-8">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold text-expresso">{deck.title}</h1>
-        <Link
-          href={`/study/${deck.id}`}
-          className="px-6 py-2 bg-coffee text-white rounded-lg hover:bg-expresso transition"
-        >
-          Study
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href={`/decks/${deck.id}/edit`}
+            className="px-6 py-2 bg-walnut text-white rounded-lg hover:bg-expresso transition"
+          >
+            Edit
+          </Link>
+          <Link
+            href={`/study/${deck.id}`}
+            className="px-6 py-2 bg-coffee text-white rounded-lg hover:bg-expresso transition"
+          >
+            Study
+          </Link>
+        </div>
       </div>
       <div className="mb-6">
         <div className="w-full min-h-20 text-expresso bg-[#8F6E4F33] border-none rounded px-3 py-2">
