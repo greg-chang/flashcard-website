@@ -1,5 +1,6 @@
-import { getAllDecks, getDeck } from '../deck-api';
+import { getAllDecks, getDeck, getAllFlashcards } from '../deck-api';
 import { Deck } from '../../types/deck';
+import { Flashcard } from '../../types/flashcard';
 
 // Mock the global fetch function
 global.fetch = jest.fn();
@@ -108,5 +109,47 @@ describe('Deck API Functions', () => {
           await expect(getDeck(deckId, mockGetToken)).rejects.toThrow('No authentication token found');
           expect(fetch).not.toHaveBeenCalled();
       });
+  });
+
+  describe('getAllFlashcards', () => {
+    const deckId = '1';
+    const mockFlashcards: Flashcard[] = [
+      { id: 'fc1', parent_deck: deckId, front: 'Q1', back: 'A1', starred: false },
+      { id: 'fc2', parent_deck: deckId, front: 'Q2', back: 'A2', starred: true },
+    ];
+
+    it('should fetch all flashcards for a deck successfully', async () => {
+      (fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockFlashcards,
+      });
+
+      const flashcards = await getAllFlashcards(deckId, mockGetToken);
+
+      expect(fetch).toHaveBeenCalledWith(`http://localhost:8000/api/go/decks/${deckId}/flashcards`, {
+        method: 'GET',
+        headers: {
+          Authorization: 'Bearer test-token',
+        },
+      });
+      expect(flashcards).toEqual(mockFlashcards);
+      expect(mockGetToken).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw an error if the fetch fails', async () => {
+      (fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        text: async () => 'Error fetching flashcards',
+      });
+
+      await expect(getAllFlashcards(deckId, mockGetToken)).rejects.toThrow('Error fetching flashcards');
+    });
+
+    it('should throw an error if no token is found', async () => {
+      mockGetToken.mockResolvedValueOnce(null);
+
+      await expect(getAllFlashcards(deckId, mockGetToken)).rejects.toThrow('No authentication token found');
+      expect(fetch).not.toHaveBeenCalled();
+    });
   });
 }); 
