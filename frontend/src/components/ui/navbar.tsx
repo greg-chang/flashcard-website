@@ -1,10 +1,10 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { useUser, SignOutButton } from "@clerk/nextjs";
+import { useUser, SignOutButton, SignInButton } from "@clerk/nextjs";
 import Link from "next/link";
 
 export default function Navbar() {
-  const { user } = useUser();
+  const { user, isSignedIn } = useUser();
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -51,8 +51,8 @@ export default function Navbar() {
           Create Deck
         </Link>
       </div>
-      {/* User Profile */}
-      {user && (
+      {/* User Profile or Sign In */}
+      {isSignedIn ? (
         <div className="relative" ref={dropdownRef}>
           <button
             className="flex items-center gap-2 focus:outline-none"
@@ -99,6 +99,12 @@ export default function Navbar() {
             </div>
           )}
         </div>
+      ) : (
+        <SignInButton mode="modal">
+          <button className="px-4 py-2 bg-coffee text-white rounded hover:bg-expresso transition">
+            Sign In
+          </button>
+        </SignInButton>
       )}
     </nav>
   );
