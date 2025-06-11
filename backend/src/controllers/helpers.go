@@ -10,15 +10,22 @@ import (
 	"github.com/google/uuid"
 )
 
+var getClerkID = func(c *gin.Context) (string, bool) {
+	claims, ok := clerk.SessionClaimsFromContext(c.Request.Context())
+	if !ok {
+		return "", false
+	}
+	return claims.Subject, true
+}
+
 // GetUserIDFromClerkID retrieves the application-specific user UUID from the database
 // based on the Clerk user ID from the session token.
-func GetUserIDFromClerkID(c *gin.Context) (uuid.UUID, bool) {
-	claims, ok := clerk.SessionClaimsFromContext(c.Request.Context())
+var GetUserIDFromClerkID = func(c *gin.Context) (uuid.UUID, bool) {
+	clerkID, ok := getClerkID(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: No session found"})
 		return uuid.Nil, false
 	}
-	clerkID := claims.Subject
 
 	var userID uuid.UUID
 	err := database.DB.QueryRow("SELECT id FROM users WHERE clerk_id = $1", clerkID).Scan(&userID)

@@ -201,5 +201,5 @@ func DeleteDeck(c *gin.Context) {
 		return
 	}
 
-	c.Status(http.StatusNoContent)
+	c.AbortWithStatus(http.StatusNoContent)
 }

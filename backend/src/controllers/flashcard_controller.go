@@ -209,5 +209,5 @@ func DeleteFlashcard(c *gin.Context) {
 		return
 	}
 
-	c.Status(http.StatusNoContent)
+	c.AbortWithStatus(http.StatusNoContent)
 }

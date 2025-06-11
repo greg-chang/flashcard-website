@@ -7,7 +7,6 @@ import (
 	"api/src/database"
 	"api/src/models"
 
-	"github.com/clerk/clerk-sdk-go/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -72,12 +71,12 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	claims, ok := clerk.SessionClaimsFromContext(c.Request.Context())
+	clerkID, ok := getClerkID(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
-	user.ClerkID = claims.Subject
+	user.ClerkID = clerkID
 
 	if err := user.Validate(); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -105,7 +104,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	claims, ok := clerk.SessionClaimsFromContext(c.Request.Context())
+	clerkID, ok := getClerkID(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
@@ -124,7 +123,7 @@ func UpdateUser(c *gin.Context) {
 
 	result, err := database.DB.Exec(
 		"UPDATE users SET name = $1, email = $2 WHERE id = $3 AND clerk_id = $4",
-		user.Name, user.Email, id, claims.Subject,
+		user.Name, user.Email, id, clerkID,
 	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -163,13 +162,13 @@ func DeleteUser(c *gin.Context) {
 		return
 	}
 
-	claims, ok := clerk.SessionClaimsFromContext(c.Request.Context())
+	clerkID, ok := getClerkID(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
-	result, err := database.DB.Exec("DELETE FROM users WHERE id = $1 AND clerk_id = $2", id, claims.Subject)
+	result, err := database.DB.Exec("DELETE FROM users WHERE id = $1 AND clerk_id = $2", id, clerkID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -177,14 +176,13 @@ func DeleteUser(c *gin.Context) {
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get rows affected"})
 		return
 	}
-
 	if rowsAffected == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found or access denied"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 
-	c.Status(http.StatusNoContent)
+	c.AbortWithStatus(http.StatusNoContent)
 }

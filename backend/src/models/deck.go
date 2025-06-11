@@ -15,9 +15,6 @@ type Deck struct {
 }
 
 func (d *Deck) Validate() error {
-	if d.OwnerID == uuid.Nil {
-		return fmt.Errorf("owner_id is required")
-	}
 	if d.Title == "" {
 		return fmt.Errorf("title is required")
 	}
