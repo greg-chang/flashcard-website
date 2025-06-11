@@ -101,7 +101,7 @@ export default function DashboardPage() {
             </Box>
 
             <VStack spacing={5} maxH="calc(100vh - 280px)" overflowY="auto" align="stretch">
-              {loading && <Spinner alignSelf="center" />}
+              {loading && <Spinner data-testid="loading-spinner" alignSelf="center" />}
               {error && <Text color="red.500">{error}</Text>}
               {!loading && decks.length === 0 && (
                 <Text textAlign="center" color="gray.500">No decks found</Text>
