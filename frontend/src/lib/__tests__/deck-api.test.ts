@@ -1,4 +1,4 @@
-import { getAllDecks, getDeck, getAllFlashcards, createDeckWithFlashcards } from '../deck-api';
+import { getAllDecks, getDeck, getAllFlashcards, createDeckWithFlashcards, editDeck } from '../deck-api';
 import { Deck } from '../../types/deck';
 import { Flashcard } from '../../types/flashcard';
 
@@ -217,5 +217,63 @@ describe('Deck API Functions', () => {
         // Should be called twice (once for deck, once for the failing flashcard)
         expect(fetch).toHaveBeenCalledTimes(2);
     });
+  });
+
+  describe('editDeck', () => {
+    const deckId = 'deck-1';
+    const deckData = { title: 'Updated Title', description: 'Updated desc', labels: [] };
+    const flashcardsToEdit = [
+      // Update an existing flashcard
+      { id: 'fc-1', front: 'Updated Q1', back: 'Updated A1', starred: true },
+      // Create a new flashcard
+      { front: 'New Q2', back: 'New A2', starred: false },
+    ];
+    const updatedDeck: Deck = { id: deckId, owner_id: 'user1', ...deckData };
+
+    it('should edit a deck, update existing flashcards, and create new ones successfully', async () => {
+      // 1. Mock deck update
+      (fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => updatedDeck,
+      });
+      // 2. Mock existing flashcard update
+      (fetch as jest.Mock).mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+      // 3. Mock new flashcard creation
+      (fetch as jest.Mock).mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+
+      const result = await editDeck(deckId, deckData, flashcardsToEdit, mockGetToken);
+
+      expect(result).toEqual(updatedDeck);
+      expect(mockGetToken).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledTimes(3);
+
+      // Check deck update call
+      expect(fetch).toHaveBeenCalledWith(`http://localhost:8000/api/go/decks/${deckId}`, expect.anything());
+      // Check existing flashcard update call
+      expect(fetch).toHaveBeenCalledWith(`http://localhost:8000/api/go/flashcards/fc-1`, expect.anything());
+      // Check new flashcard creation call
+      expect(fetch).toHaveBeenCalledWith(`http://localhost:8000/api/go/decks/${deckId}/flashcards`, expect.anything());
+    });
+
+    it('should throw an error if the deck update fails', async () => {
+      (fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        text: async () => 'Deck update failed',
+      });
+
+      await expect(editDeck(deckId, deckData, flashcardsToEdit, mockGetToken)).rejects.toThrow('Deck update failed');
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw an error if an existing flashcard update fails', async () => {
+        (fetch as jest.Mock)
+          // Mock successful deck update
+          .mockResolvedValueOnce({ ok: true, json: async () => updatedDeck })
+          // Mock failed flashcard update
+          .mockResolvedValueOnce({ ok: false, text: async () => 'Flashcard update failed' });
+  
+        await expect(editDeck(deckId, deckData, flashcardsToEdit, mockGetToken)).rejects.toThrow('Flashcard update failed');
+        expect(fetch).toHaveBeenCalledTimes(2);
+      });
   });
 }); 
