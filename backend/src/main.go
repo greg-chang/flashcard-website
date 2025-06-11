@@ -1,12 +1,11 @@
 package main
 
 import (
+	"api/src/database"
+	"api/src/routes"
 	"database/sql"
 	"log"
 	"os"
-
-	"api/src/database"
-	"api/src/routes"
 
 	"github.com/clerk/clerk-sdk-go/v2"
 	"github.com/gin-gonic/gin"
@@ -14,31 +13,30 @@ import (
 
 func SetupRouter(db *sql.DB) *gin.Engine {
 	database.DB = db
-
 	r := routes.SetupRouter()
 	return r
 }
 
 func main() {
-	clerkKey := os.Getenv("CLERK_JWT_SECRET")
+	clerkKey := os.Getenv("CLERK_SECRET_KEY")
 	if clerkKey == "" {
-		log.Fatal("CLERK_JWT_SECRET environment variable not set")
+		log.Fatal("CLERK_SECRET_KEY not set")
 	}
 	clerk.SetKey(clerkKey)
 
-	if err := database.InitDB(); err != nil {
+	db, err := database.InitDB()
+	if err != nil {
 		log.Fatal(err)
 	}
-	defer database.DB.Close()
+	defer db.Close()
 
-	r := SetupRouter(database.DB)
+	r := SetupRouter(db)
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8000"
+		port = "8080"
 	}
-
-	log.Printf("Server starting on port %s...", port)
+	log.Printf("Server listening on port %s", port)
 	if err := r.Run(":" + port); err != nil {
 		log.Fatal(err)
 	}
