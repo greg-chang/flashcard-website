@@ -131,6 +131,8 @@ func UpdateDeck(c *gin.Context) {
 		return
 	}
 
+	deck.OwnerID = userID
+
 	if err := deck.Validate(); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

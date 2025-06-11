@@ -146,3 +146,88 @@ export async function getAllFlashcards(
   const flashcards: Flashcard[] = await res.json();
   return flashcards;
 }
+
+/**
+ * Edits a deck and its flashcards for the authenticated user.
+ * Updates the deck info, updates existing flashcards, creates new ones, and (optionally) deletes removed ones.
+ * @param deckId The deck's ID (string)
+ * @param deck Deck object (title, description, labels)
+ * @param flashcards Array of flashcards (may include new and existing)
+ * @param getToken Function to get the Clerk JWT (from useAuth)
+ * @returns The updated Deck object from the backend
+ */
+export async function editDeck(
+  deckId: string,
+  deck: Omit<Deck, "id" | "owner_id">,
+  flashcards: Partial<Flashcard>[], // can include id for existing, or omit for new
+  getToken: () => Promise<string | null>,
+): Promise<Deck> {
+  const token = await getToken();
+  if (!token) throw new Error("No authentication token found");
+
+  // 1. Update the deck info
+  const deckRes = await fetch(`http://localhost:8000/api/go/decks/${deckId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(deck),
+  });
+
+  if (!deckRes.ok) {
+    const errorText = await deckRes.text();
+    throw new Error(errorText);
+  }
+
+  const updatedDeck: Deck = await deckRes.json();
+
+  // 2. Update or create flashcards
+  for (const card of flashcards) {
+    if (card.id) {
+      // Update existing flashcard
+      const cardRes = await fetch(
+        `http://localhost:8000/api/go/flashcards/${card.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            front: card.front,
+            back: card.back,
+            starred: card.starred ?? false,
+          }),
+        },
+      );
+      if (!cardRes.ok) {
+        const errorText = await cardRes.text();
+        throw new Error(errorText);
+      }
+    } else {
+      // Create new flashcard
+      const cardRes = await fetch(
+        `http://localhost:8000/api/go/decks/${deckId}/flashcards`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            front: card.front,
+            back: card.back,
+            starred: card.starred ?? false,
+          }),
+        },
+      );
+      if (!cardRes.ok) {
+        const errorText = await cardRes.text();
+        throw new Error(errorText);
+      }
+    }
+  }
+
+  return updatedDeck;
+}
