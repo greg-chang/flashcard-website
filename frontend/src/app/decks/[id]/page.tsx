@@ -88,6 +88,7 @@ export default function ViewDeckPage() {
                 value={card.front}
                 placeholder="Term"
                 required
+                readOnly
               />
               <div className="w-px h-10 bg-[#8F6E4F4D] mx-1" />
               <textarea
@@ -95,6 +96,7 @@ export default function ViewDeckPage() {
                 value={card.back}
                 placeholder="Definition"
                 required
+                readOnly
               />
             </div>
           ))}
