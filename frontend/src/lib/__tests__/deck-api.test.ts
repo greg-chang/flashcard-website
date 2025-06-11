@@ -1,4 +1,4 @@
-import { getAllDecks } from '../deck-api';
+import { getAllDecks, getDeck } from '../deck-api';
 import { Deck } from '../../types/deck';
 
 // Mock the global fetch function
@@ -61,5 +61,52 @@ describe('Deck API Functions', () => {
         await expect(getAllDecks(mockGetToken)).rejects.toThrow('No authentication token found');
         expect(fetch).not.toHaveBeenCalled();
     });
+  });
+
+  describe('getDeck', () => {
+    const mockDeck: Deck = { id: '1', title: 'Deck 1', description: 'Desc 1', owner_id: 'user1', labels: [] };
+    const deckId = '1';
+
+    it('should fetch a single deck successfully', async () => {
+      (fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockDeck,
+      });
+
+      const deck = await getDeck(deckId, mockGetToken);
+
+      expect(fetch).toHaveBeenCalledWith(`http://localhost:8000/api/go/decks/${deckId}`, {
+        method: 'GET',
+        headers: {
+          Authorization: 'Bearer test-token',
+        },
+      });
+      expect(deck).toEqual(mockDeck);
+      expect(mockGetToken).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw an error if the fetch fails', async () => {
+        (fetch as jest.Mock).mockResolvedValueOnce({
+          ok: false,
+          text: async () => 'Deck not found',
+        });
+  
+        await expect(getDeck(deckId, mockGetToken)).rejects.toThrow('Deck not found');
+  
+        expect(fetch).toHaveBeenCalledWith(`http://localhost:8000/api/go/decks/${deckId}`, {
+          method: 'GET',
+          headers: {
+            Authorization: 'Bearer test-token',
+          },
+        });
+        expect(mockGetToken).toHaveBeenCalledTimes(1);
+      });
+  
+      it('should throw an error if no token is found', async () => {
+          mockGetToken.mockResolvedValueOnce(null);
+  
+          await expect(getDeck(deckId, mockGetToken)).rejects.toThrow('No authentication token found');
+          expect(fetch).not.toHaveBeenCalled();
+      });
   });
 }); 
