@@ -1,4 +1,4 @@
-import { getAllDecks, getDeck, getAllFlashcards } from '../deck-api';
+import { getAllDecks, getDeck, getAllFlashcards, createDeckWithFlashcards } from '../deck-api';
 import { Deck } from '../../types/deck';
 import { Flashcard } from '../../types/flashcard';
 
@@ -150,6 +150,72 @@ describe('Deck API Functions', () => {
 
       await expect(getAllFlashcards(deckId, mockGetToken)).rejects.toThrow('No authentication token found');
       expect(fetch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('createDeckWithFlashcards', () => {
+    const newDeckData = { title: 'New Deck', description: 'A brand new deck', labels: [] };
+    const newFlashcardsData = [
+      { front: 'Q1', back: 'A1', starred: false },
+      { front: 'Q2', back: 'A2', starred: true },
+    ];
+    const createdDeck: Deck = { id: 'new-deck-id', owner_id: 'user1', ...newDeckData };
+
+    it('should create a deck and its flashcards successfully', async () => {
+      // Mock the deck creation fetch call
+      (fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => createdDeck,
+      });
+
+      // Mock the flashcard creation fetch calls
+      (fetch as jest.Mock).mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+      (fetch as jest.Mock).mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+
+      const result = await createDeckWithFlashcards(newDeckData, newFlashcardsData, mockGetToken);
+
+      expect(result).toEqual(createdDeck);
+      expect(mockGetToken).toHaveBeenCalledTimes(1);
+      
+      // Check that fetch was called 3 times (1 for deck, 2 for flashcards)
+      expect(fetch).toHaveBeenCalledTimes(3);
+
+      // Check the deck creation call
+      expect(fetch).toHaveBeenCalledWith('http://localhost:8000/api/go/decks', expect.anything());
+
+      // Check the flashcard creation calls
+      expect(fetch).toHaveBeenCalledWith(`http://localhost:8000/api/go/decks/${createdDeck.id}/flashcards`, expect.anything());
+    });
+
+    it('should throw an error if deck creation fails', async () => {
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            ok: false,
+            text: async () => 'Deck creation failed',
+        });
+
+        await expect(createDeckWithFlashcards(newDeckData, newFlashcardsData, mockGetToken)).rejects.toThrow('Deck creation failed');
+
+        // Should only be called once for the deck, and not for the flashcards
+        expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw an error if a flashcard creation fails', async () => {
+        // Mock successful deck creation
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            ok: true,
+            json: async () => createdDeck,
+        });
+
+        // Mock a failed flashcard creation
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            ok: false,
+            text: async () => 'Flashcard creation failed',
+        });
+
+        await expect(createDeckWithFlashcards(newDeckData, newFlashcardsData, mockGetToken)).rejects.toThrow('Flashcard creation failed');
+
+        // Should be called twice (once for deck, once for the failing flashcard)
+        expect(fetch).toHaveBeenCalledTimes(2);
     });
   });
 }); 
