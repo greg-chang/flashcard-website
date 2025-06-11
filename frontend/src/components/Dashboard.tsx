@@ -45,7 +45,7 @@ export default function DashboardPage() {
     const fetchDecks = async () => {
       try {
         const token = await getToken();
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/go/decks`, {
+        const res = await fetch('http://localhost:8000/api/go/decks', {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -63,7 +63,7 @@ export default function DashboardPage() {
   const handleCreateClick = () => router.push('/create-deck');
   const handleStudyClick = () => {
     if (selectedDeckId) {
-      router.push(`/study/${selectedDeckId}`);
+    router.push(`/study/${selectedDeckId}`);
     } else {
       toast({ title: 'Please select a deck.', status: 'info' });
     }
@@ -71,10 +71,14 @@ export default function DashboardPage() {
 
   return (
     <ChakraProvider theme={theme}>
-      <Flex direction="column" minH="100vh" bg="#FFF8F3">
-        <Flex p={10} gap={6} justify="center" flex="1" flexWrap="wrap">
+      <Flex direction="column" minH="100vh" bg="#FFF8F3" pt="60px">
+        <Flex   p={10}
+            gap={6}
+            justify="center"
+            flex="1"
+            flexWrap="wrap">
           {/* Left: Deck List */}
-          <Box w={['100%', '48%', '540px']} bg="white" p={6} borderRadius="xl" boxShadow="md" border="2px solid #D5C6BA">
+          <Box w={{ base: '100%', md: '45%' }} bg="white" p={6} borderRadius="xl" boxShadow="md" border="2px solid #D5C6BA">
             <Flex justify="space-between" align="center" mb={4}>
               <Heading fontSize="xl" color='#3D2C23'>Decks</Heading>
             </Flex>
@@ -139,9 +143,9 @@ export default function DashboardPage() {
           </Box>
 
           {/* Right Column:Study + image */}
-          <Flex direction="column" w={['100%', '48%', '540px']} gap={4}>
+          <Flex direction="column" w={{ base: '100%', md: '45%' }} gap={4}>
             {/* Top Box: Study */}
-            <Box bg="white" p={6} borderRadius="xl" boxShadow="md" border="2px solid #D5C6BA" minH="250px">
+            <Box bg="white" p={6} borderRadius="xl" boxShadow="md" border="2px solid #D5C6BA">
               <Heading fontSize="xl" mb={2} color = '#3D2C23'>Study</Heading>
               <Text fontSize="sm" color="gray.600">Review your flashcard decks</Text>
               <Select
@@ -167,18 +171,17 @@ export default function DashboardPage() {
             </Box>
 
             {/* Bottom Box: Placeholder */}
-            <Box bg="white" p={6} borderRadius="xl" boxShadow="md" border="2px solid #D5C6BA" minH="250px">
-              {/* Avatar, Preview, or Placeholder */}
+            <Box w="100%">
                 <Image
-                src={Illustration}
-                alt="Study Lounge Illustration"
-                width={600}
-                height={450}
-                layout="responsive"
-                objectFit="contain"
-                priority
-              />
-            </Box>
+                  src={Illustration}
+                  alt="Study Lounge Illustration"
+                  layout="responsive"
+                  width={1000}
+                  height={800}
+                  objectFit="contain"
+                  priority
+                />
+              </Box>
           </Flex>
         </Flex>
         <Footer />
