@@ -8,15 +8,12 @@ import (
 
 type User struct {
 	ID      uuid.UUID `json:"id"`
-	ClerkID string    `json:"clerk_id" binding:"required"`
+	ClerkID string    `json:"clerk_id"`
 	Name    string    `json:"name" binding:"required"`
 	Email   string    `json:"email" binding:"required"`
 }
 
 func (u *User) Validate() error {
-	if u.ClerkID == "" {
-		return fmt.Errorf("clerk_id is required")
-	}
 	if u.Name == "" {
 		return fmt.Errorf("name is required")
 	}
