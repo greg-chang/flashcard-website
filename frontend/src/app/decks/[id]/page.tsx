@@ -78,26 +78,27 @@ export default function ViewDeckPage() {
       </div>
       <h2 className="text-xl font-semibold mb-2 text-expresso">Cards</h2>
       <div className="space-y-4 mb-6">
-        {flashcards.map((card) => (
-          <div
-            key={card.id}
-            className="flex bg-white items-center border border-walnut rounded-xl"
-          >
-            <div className="min-h-20 text-walnut flex-1 px-3 py-2 flex-row items-start justify-start">
-              {card.front}
+          {flashcards.map((card, idx) => (
+            <div
+              key={card.id ?? idx}
+              className="flex bg-white items-center border border-walnut rounded-xl"
+            >
+              <textarea
+                className="text-walnut flex-1 rounded px-3 py-2 focus:outline-none focus:ring-0 focus:ring-coffee resize-none"
+                value={card.front}
+                placeholder="Term"
+                required
+              />
+              <div className="w-px h-10 bg-[#8F6E4F4D] mx-1" />
+              <textarea
+                className="text-walnut flex-1 rounded px-3 py-2 focus:outline-none focus:ring-0 focus:ring-coffee resize-none"
+                value={card.back}
+                placeholder="Definition"
+                required
+              />
             </div>
-            <div className="w-px self-stretch bg-gray-300 mx-1" />
-            <div className="min-h-20 text-walnut flex-1 px-3 py-2 flex-row items-start justify-start">
-              {card.back}
-            </div>
-            {card.starred && (
-              <span className="ml-2 pr-2 text-yellow-500" title="Starred">
-                ★
-              </span>
-            )}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
     </div>
   );
 }
