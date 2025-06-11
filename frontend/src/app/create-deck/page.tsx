@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import { createDeckWithFlashcards } from "../../lib/deck-api";
 
 export default function CreateDeckPage() {
@@ -9,6 +10,7 @@ export default function CreateDeckPage() {
   const [description, setDescription] = useState("");
   const [cards, setCards] = useState([{ front: "", back: "" }]);
   const { getToken } = useAuth();
+  const router = useRouter();
 
   const handleCardChange = (
     idx: number,
@@ -27,7 +29,7 @@ export default function CreateDeckPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createDeckWithFlashcards(
+      const createdDeck = await createDeckWithFlashcards(
         { title, description, labels: [] },
         cards.map((card) => ({
           front: card.front,
@@ -39,7 +41,8 @@ export default function CreateDeckPage() {
       setTitle("Untitled Deck");
       setDescription("");
       setCards([{ front: "", back: "" }]);
-      alert("Deck created!");
+      // Redirect to the new deck's page
+      router.push(`/decks/${createdDeck.id}`);
     } catch (err: any) {
       let message = "Failed to create deck.";
       if (err?.message) {
